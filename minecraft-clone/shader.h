@@ -33,3 +33,4 @@ void active_texture_1();
 void active_texture_2();
 void active_texture_3();
 void active_texture_4();
+void active_texture_5();

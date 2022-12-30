@@ -6,6 +6,7 @@
 
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 bool firstMouse = true;
 float lastX = 800.0f / 2.0;
@@ -20,7 +21,7 @@ float key_time = 0.f;
 
 int main(void)
 {
-    create_window("Learn OpenGL", 1280, 720, mouse_callback);
+    create_window("Learn OpenGL", 1280, 720, mouse_callback, mouse_button_callback);
     
     initialize_camera();
 
@@ -89,6 +90,12 @@ void processInput(GLFWwindow* window)
             }
         }
     }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) 
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        break_block();
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

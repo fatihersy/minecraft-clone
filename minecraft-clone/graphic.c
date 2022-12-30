@@ -12,7 +12,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static GLFWwindow* window;
 
 
-int create_window(const char* title, int width, int height, void* mouse_callback) 
+int create_window(const char* title, int width, int height, void* mouse_callback, void* mouse_button_callback)
 {
     // glfw: initialize and configure
     // ------------------------------
@@ -33,6 +33,7 @@ int create_window(const char* title, int width, int height, void* mouse_callback
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
@@ -43,6 +44,8 @@ int create_window(const char* title, int width, int height, void* mouse_callback
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

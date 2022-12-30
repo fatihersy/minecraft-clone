@@ -32,7 +32,8 @@ image_path texture_path[] =
     {"D:/Workspace/grass_top.jpg", false},
     {"D:/Workspace/grass_side.jpg", false},
     {"D:/Workspace/grass_bottom.jpg", false},
-    {"D:/Workspace/awesomeface.png", true}
+    {"D:/Workspace/awesomeface.png", true},
+    {"D:/Workspace/outline.png", true}
 };
 
 void load_resources() 
@@ -45,14 +46,11 @@ void load_resources()
 
    use_program();
 
-   // either set it manually like so:
    glUniform1i(glGetUniformLocation(shader_program, "texture1"), 0);
-   // or set it via the texture class
    glUniform1i(glGetUniformLocation(shader_program, "texture2"), 1);
-   // either set it manually like so:
    glUniform1i(glGetUniformLocation(shader_program, "texture3"), 2);
-   // or set it via the texture class
    glUniform1i(glGetUniformLocation(shader_program, "texture4"), 3);
+   glUniform1i(glGetUniformLocation(shader_program, "texture5"), 4);
 }
 
 void update_shader() 
@@ -220,7 +218,7 @@ unsigned int load_texture(const char* fileName, bool is_png)
     unsigned char* data = stbi_load(fileName, &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, is_png ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, is_png ? GL_RGBA : GL_RGB, width, height, 0, is_png ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -255,4 +253,8 @@ void active_texture_3()
 void active_texture_4()
 {
     glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 4);
+}
+void active_texture_5() 
+{
+    glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 5);
 }

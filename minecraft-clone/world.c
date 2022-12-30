@@ -1,5 +1,7 @@
 #include "world.h"
 
+#include <math.h>
+
 #include "camera.h"
 #include "block.h"
 
@@ -16,6 +18,8 @@
 
 block grid[BOUND_X][BOUND_Y][BOUND_Z] = {0};
 
+vector selected_block = {0};
+
 void initialize_world() 
 {
 	unsigned int grid_count = 0;
@@ -30,6 +34,8 @@ void initialize_world()
 				[(x >= MAX_WORLD_X) ? BOUND_X : x]
 				[(y >= MAX_WORLD_Y) ? BOUND_Y : y]
 				[(z >= MAX_WORLD_Z) ? BOUND_Z : z].is_active = true;
+
+				grid[x][y][z].block_type = (y + 1 == MAX_WORLD_Y) ? GRASS : DIRT;
 			}
 		}
 	}
@@ -59,14 +65,14 @@ void update_world()
 					sides side = (sides)
 					{
 						((y + 1) >= BOUND_Y) ? false : grid[x][y + 1][z].is_active,
-						((y - 1) < 0)      ? false  : grid[x][y - 1][z].is_active,
-						((x + 1) >= BOUND_X) ? false:  grid[x + 1][y][z].is_active,
+						((y - 1) < 0)       ? false : grid[x][y - 1][z].is_active,
+						((x + 1) >= BOUND_X) ? false :  grid[x + 1][y][z].is_active,
 						((x - 1) < 0)       ?false  : grid[x - 1][y][z].is_active,
 						((z + 1) >= BOUND_Z) ? false : grid[x][y][z + 1].is_active,
-						((z - 1) < 0)      ? false  : grid[x][y][z - 1].is_active,
+						((z - 1) < 0)       ? false : grid[x][y][z - 1].is_active,
 					};
 
-					render_block(x,y,z,side, (z % 2) + 1);
+					render_block(x, y, z, side, grid[x][y][z].block_type);
 				}
 			}
 		}
@@ -74,12 +80,24 @@ void update_world()
 
 
 	vector direction = camera_pos;
-	for (unsigned int i = 0; i < 30; i++)
+	for (unsigned int i = 0; i < 10; i++)
 	{
 		direction = add_vector(direction, front);
-		grid
-			[(int)direction.x]
-			[(int)direction.y]
-			[(int)direction.z].is_active = false;
+		int x = (int)round(direction.x);
+		int y = (int)round(direction.y);
+		int z = (int)round(direction.z);
+
+		if(grid[x][y][z].is_active)
+		{
+			render_block(x, y, z, (sides){false}, OUTLINE);
+			selected_block = (vector){ x, y, z };
+			break;
+		}
 	}
+}
+
+
+void break_block()
+{
+	grid[(int)selected_block.x][(int)selected_block.y][(int)selected_block.z].is_active = false ;
 }

@@ -2,6 +2,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+typedef enum block_type 
+{
+	OUTLINE = 0,
+	DIRT = 1,
+	GRASS = 2
+};
 
 typedef struct block
 {
@@ -19,5 +25,4 @@ typedef struct sides
 	bool back;
 }sides;
 
-void render_block(float x, float y, float z, sides side, uint8_t texture_index);
-
+void render_block(float x, float y, float z, sides side, uint8_t block_type);
