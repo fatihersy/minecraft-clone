@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fmath.h"
+#include "fdefines.h"
 
 void initialize_camera();
 
@@ -8,6 +8,8 @@ float* get_matrix_ptr(const char* name);
 
 vector get_camera_position();
 vector get_camera_direction();
+
+void set_camera_position(float x, float y, float z);
 
 void update_camera(float delta_time);
 

@@ -30,7 +30,7 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(get_window_instance()))
     {
-        system("cls");
+        //system("cls");
         float current_frame = glfwGetTime();
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
@@ -89,13 +89,17 @@ void processInput(GLFWwindow* window)
                 polygon_mode = true;
             }
         }
+        if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+            set_camera_position(1, 20, 1);
     }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) 
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
         break_block();
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        put_block();
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

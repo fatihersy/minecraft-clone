@@ -3,16 +3,12 @@
 #ifndef FMATH_H
 #define FMATH_H
 
-typedef struct vector
-{
-	float x, y, z;
-}vector;
-
-void initialize_perspective();
-
-unsigned int get_value_ptr();
+#include "fdefines.h"
 
 vector add_vector(vector a, vector b);
+
+int round_up(float value);
+int round_down(float value);
 
 #endif // !FMATH_H
 

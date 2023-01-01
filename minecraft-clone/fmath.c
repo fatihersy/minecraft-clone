@@ -1,15 +1,5 @@
 #include "fmath.h"
-
-void initialize_perspective() 
-{
-
-}
-
-unsigned int get_value_ptr()
-{
-
-}
-
+#include <math.h>
 
 vector add_vector(vector a, vector b) 
 {
@@ -23,3 +13,7 @@ vector add_vector(vector a, vector b)
 		(z < 0) ? 0 : z
 	};
 }
+
+int round_up(float value) { return (int)round(value); }
+
+int round_down(float value) { return (int)floor(value); }

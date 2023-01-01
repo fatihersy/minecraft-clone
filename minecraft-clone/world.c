@@ -1,9 +1,8 @@
 #include "world.h"
 
-#include <math.h>
-
 #include "camera.h"
 #include "block.h"
+#include "fmath.h"
 
 // world space positions of our cubes
 #define BOUND_X 100
@@ -46,13 +45,13 @@ void update_world()
 	vector camera_pos = get_camera_position();
 	vector front = get_camera_direction();
 
-	int cam_x = ((camera_pos.x - CHUNK) < 0) ? 0 : ( camera_pos.x - CHUNK) ;
-	int cam_y = ((camera_pos.y - CHUNK) < 0) ? 0 : ( camera_pos.y - CHUNK) ;
-	int cam_z = ((camera_pos.z - CHUNK) < 0) ? 0 : ( camera_pos.z - CHUNK) ;
+	int cam_x = FMAX(camera_pos.x - CHUNK, 0);
+	int cam_y = FMAX(camera_pos.y - CHUNK, 0);
+	int cam_z = FMAX(camera_pos.z - CHUNK, 0);
 
-	int bound_x = ((camera_pos.x + CHUNK) > BOUND_X) ? BOUND_X : ( camera_pos.x + CHUNK) ;
-	int bound_y = ((camera_pos.y + CHUNK) > BOUND_Y) ? BOUND_Y : ( camera_pos.y + CHUNK) ;
-	int bound_z = ((camera_pos.z + CHUNK) > BOUND_Z) ? BOUND_Z : ( camera_pos.z + CHUNK) ;
+	int bound_x = FMIN(camera_pos.x + CHUNK, BOUND_X);
+	int bound_y = FMIN(camera_pos.y + CHUNK, BOUND_Y);
+	int bound_z = FMIN(camera_pos.z + CHUNK, BOUND_Z);
 
 	for (int  x = cam_x; x < bound_x; x++)
 	{
@@ -83,9 +82,9 @@ void update_world()
 	for (unsigned int i = 0; i < 10; i++)
 	{
 		direction = add_vector(direction, front);
-		int x = (int)round(direction.x);
-		int y = (int)round(direction.y);
-		int z = (int)round(direction.z);
+		int x = round_up(direction.x);
+		int y = round_up(direction.y);
+		int z = round_up(direction.z);
 
 		if(grid[x][y][z].is_active)
 		{
@@ -96,6 +95,20 @@ void update_world()
 	}
 }
 
+bool is_position_emtpy(int x, int y, int z)
+{
+	return grid[x][y][z].is_active;
+}
+
+void put_block() 
+{
+	int x = (int)selected_block.x;
+	int y = (int)selected_block.y;
+	int z = (int)selected_block.z;
+
+	grid[x][y+1][z].is_active = true;
+	grid[x][y+1][z].block_type = DIRT;
+}
 
 void break_block()
 {

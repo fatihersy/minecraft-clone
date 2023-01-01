@@ -1,6 +1,8 @@
 #pragma once
-#include <stdbool.h>
+
 #include <stdint.h>
+
+#include "fdefines.h"
 
 typedef enum block_type 
 {

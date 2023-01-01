@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
 
 int create_window(const char* title, int width, int height, void* mouse_callback, void* mouse_button_callback);
 

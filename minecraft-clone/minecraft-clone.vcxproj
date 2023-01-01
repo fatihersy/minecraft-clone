@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="block.c" />
     <ClCompile Include="camera.c" />
+    <ClCompile Include="collision.c" />
     <ClCompile Include="fmath.c" />
     <ClCompile Include="ftime.c" />
     <ClCompile Include="glad.c" />
@@ -143,7 +144,9 @@
   <ItemGroup>
     <ClInclude Include="block.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="collision.h" />
     <ClInclude Include="cube.h" />
+    <ClInclude Include="fdefines.h" />
     <ClInclude Include="fmath.h" />
     <ClInclude Include="ftime.h" />
     <ClInclude Include="graphic.h" />

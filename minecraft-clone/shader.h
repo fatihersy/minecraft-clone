@@ -1,10 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
 #include "cglm/call.h"
 
 unsigned int create_program(const char* vertex_path, const char* fragment_path);
