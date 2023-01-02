@@ -11,7 +11,7 @@
 
 #define FCLAMP(value, min, max) (value <= min) ? min : (value >= max) ? max : value;
 
-typedef _Bool bool;
+//typedef __Bool _Bool;
 
 typedef struct vector
 {

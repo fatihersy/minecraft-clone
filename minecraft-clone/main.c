@@ -8,14 +8,14 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
-bool firstMouse = true;
+_Bool firstMouse = true;
 float lastX = 800.0f / 2.0;
 float lastY = 600.0 / 2.0;
 
 float delta_time = 0.0f;	// Time between current frame and last frame
 float last_frame = 0.0f;
 
-bool polygon_mode = false;
+_Bool polygon_mode = false;
 
 float key_time = 0.f;
 
@@ -31,7 +31,7 @@ int main(void)
     while (!glfwWindowShouldClose(get_window_instance()))
     {
         //system("cls");
-        float current_frame = glfwGetTime();
+        double current_frame = glfwGetTime();
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
@@ -41,11 +41,11 @@ int main(void)
 
         graphics_begin_render();
 
-        graphics_update_render();
+        update_world();
 
         update_camera(delta_time);
 
-        update_world();
+        graphics_update_render();
 
         graphics_end_render();
     }
@@ -90,7 +90,7 @@ void processInput(GLFWwindow* window)
             }
         }
         if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-            set_camera_position(1, 20, 1);
+            set_camera_position(1, 16, 1);
     }
 }
 

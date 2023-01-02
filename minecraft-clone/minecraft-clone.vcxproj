@@ -121,12 +121,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\supre\source\repos\minecraft-clone\packages\include;D:\Libraries;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\supre\source\repos\minecraft-clone\packages\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -138,19 +141,23 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="graphic.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="perlin.c" />
     <ClCompile Include="shader.c" />
+    <ClCompile Include="skybox.c" />
     <ClCompile Include="world.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="block.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="collision.h" />
-    <ClInclude Include="cube.h" />
     <ClInclude Include="fdefines.h" />
     <ClInclude Include="fmath.h" />
     <ClInclude Include="ftime.h" />
+    <ClInclude Include="geometry.h" />
     <ClInclude Include="graphic.h" />
+    <ClInclude Include="perlin.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="skybox.h" />
     <ClInclude Include="world.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

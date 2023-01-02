@@ -1,5 +1,6 @@
 #include "fmath.h"
 #include <math.h>
+#include <stdio.h>
 
 vector add_vector(vector a, vector b) 
 {
@@ -12,6 +13,11 @@ vector add_vector(vector a, vector b)
 		(y < 0) ? 0 : y,
 		(z < 0) ? 0 : z
 	};
+}
+
+void print_vector(vector a) 
+{
+	printf("x: %f, y: %f, z: %f\n", a.x, a.y, a.z);
 }
 
 int round_up(float value) { return (int)round(value); }

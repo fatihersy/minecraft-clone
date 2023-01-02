@@ -49,13 +49,9 @@ int create_window(const char* title, int width, int height, void* mouse_callback
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-
-    create_program("D:/Workspace/Resources/camera.vs", "D:/Workspace/Resources/camera.fs");
-
-    bind_data();
-
     load_resources();
 
+    bind_data();
 
     return true;
 }
@@ -86,7 +82,7 @@ void terminate_window()
 {
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
-    delete_shader_program();
+    //delete_shader_program();
 
     glfwTerminate();
 }

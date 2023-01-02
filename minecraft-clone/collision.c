@@ -5,7 +5,7 @@
 #include "world.h"
 #include "fmath.h"
 
-bool check_is_collide(vector position, vector direction, vector collision_box)
+_Bool check_is_collide(vector position, vector direction, vector collision_box)
 {
 	direction = add_vector(position, direction);
 	int x = round_up(direction.x);

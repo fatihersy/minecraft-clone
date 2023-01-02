@@ -9,7 +9,11 @@ float* get_matrix_ptr(const char* name);
 vector get_camera_position();
 vector get_camera_direction();
 
+float get_window_ratio();
+
 void set_camera_position(float x, float y, float z);
+void set_view_matrix();
+void set_projection_matrix();
 
 void update_camera(float delta_time);
 

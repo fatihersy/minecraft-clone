@@ -1,18 +1,25 @@
 #include "shader.h"
 
 #include "glad/glad.h"
-
+#include "cglm/call.h"
 #include "ftime.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "cube.h"
+#include "skybox.h"
+#include "geometry.h"
 
+unsigned int create_program(const char* vertex_path, const char* fragment_path);
 char* read_from_file(const char* fileName);
-unsigned int load_texture(const char* fileName, bool is_png);
+unsigned int load_texture(const char* fileName, _Bool is_png);
+unsigned int load_skybox();
 
-static unsigned int VBO, VAO, EBO, shader_program;
+static unsigned int cubemap_texture, skybox_VAO, block_VAO, cubeVAO;
+static unsigned int main_program;
+static unsigned int skybox_program;
+static unsigned int cubemap_program;
+static unsigned int current_program;
 
 #define MAX_TEXTURE_COUNT 10
 
@@ -22,7 +29,7 @@ typedef struct texture {
 
 typedef struct image_path {
     const char* path;
-    bool is_png;
+    _Bool is_png;
 }image_path;
 
 texture textures[MAX_TEXTURE_COUNT] = {0};
@@ -36,8 +43,22 @@ image_path texture_path[] =
     {"D:/Workspace/outline.png", true}
 };
 
+image_path skybox_faces[] =
+{
+    {"D:/Workspace/skybox/right.jpg", false},
+    {"D:/Workspace/skybox/left.jpg", false},
+    {"D:/Workspace/skybox/top.jpg", false},
+    {"D:/Workspace/skybox/bottom.jpg", false},
+    {"D:/Workspace/skybox/front.jpg", false},
+    {"D:/Workspace/skybox/back.jpg", false}
+};
+
 void load_resources() 
 {
+    main_program = create_program("D:/Workspace/Resources/camera.vs", "D:/Workspace/Resources/camera.fs");
+    skybox_program = create_program("D:/Workspace/Resources/skybox.vs", "D:/Workspace/Resources/skybox.fs");
+    cubemap_program = create_program("D:/Workspace/Resources/cubemaps.vs", "D:/Workspace/Resources/cubemaps.fs");
+
    unsigned int available_texture_count = sizeof(texture_path) / sizeof(image_path);
    for (size_t i = 0; i < available_texture_count; i++)
    {
@@ -46,11 +67,20 @@ void load_resources()
 
    use_program();
 
-   glUniform1i(glGetUniformLocation(shader_program, "texture1"), 0);
-   glUniform1i(glGetUniformLocation(shader_program, "texture2"), 1);
-   glUniform1i(glGetUniformLocation(shader_program, "texture3"), 2);
-   glUniform1i(glGetUniformLocation(shader_program, "texture4"), 3);
-   glUniform1i(glGetUniformLocation(shader_program, "texture5"), 4);
+   glUniform1i(glGetUniformLocation(main_program, "texture1"), 0);
+   glUniform1i(glGetUniformLocation(main_program, "texture2"), 1);
+   glUniform1i(glGetUniformLocation(main_program, "texture3"), 2);
+   glUniform1i(glGetUniformLocation(main_program, "texture4"), 3);
+   glUniform1i(glGetUniformLocation(main_program, "texture5"), 4);
+
+   cubemap_texture = load_skybox();
+
+   use_cubemap_program();
+   setInt("skybox", 6);
+
+   use_skybox_program();
+   glUniform1i(glGetUniformLocation(skybox_program, "skybox"), 6);
+
 }
 
 void update_shader() 
@@ -62,20 +92,37 @@ void update_shader()
     }
 
     use_program();
+
+    update_skybox(skybox_VAO, cubemap_texture, cubeVAO);
+}
+
+void draw()
+{
+    //glDrawArrays(GL_TRIANGLES, 0, 36); 
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //glBindVertexArray(0);
+}
+void bind_vertex_array()
+{
+    use_program();
+    glBindVertexArray(block_VAO);
 }
 
 void bind_data()
 {
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    use_program();
 
-    glBindVertexArray(VAO);
+    unsigned int block_VBO, block_EBO;
+    glGenVertexArrays(1, &block_VAO);
+    glGenBuffers(1, &block_VBO);
+    glGenBuffers(1, &block_EBO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(block_VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, block_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_quad), vertices_quad, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, block_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_quad), indices_quad, GL_STATIC_DRAW);
 
     // position attribute
@@ -88,27 +135,43 @@ void bind_data()
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
+    // remember: do NOT unbind the EBO while a block_vao is active as the bound element buffer object IS stored in the block_vao; keep the EBO bound.
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+    // You can unbind the block_vao afterwards so other block_vao calls won't accidentally modify this block_vao, but this rarely happens. Modifying other
+    // block_vaos requires a call to glBindVertexArray anyways so we generally don't unbind block_vaos (nor VBOs) when it's not directly necessary.
     glBindVertexArray(0);
+
+    // cube VAO
+    unsigned int cubeVBO;
+    glGenVertexArrays(1, &cubeVAO);
+    glGenBuffers(1, &cubeVBO);
+    glBindVertexArray(cubeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+     //skybox block_vao
+    unsigned int skyboxVBO;
+    glGenVertexArrays(1, &skybox_VAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skybox_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices), &skybox_vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 }
 
-void draw() 
-{ 
-    //glDrawArrays(GL_TRIANGLES, 0, 36); 
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-}
-void bind_vertex_array() { glBindVertexArray(VAO); }
 
 unsigned int create_program(const char* vertex_path, const char* fragment_path)
 {
     const char* vertex_code   = read_from_file(vertex_path);
     const char* fragment_code = read_from_file(fragment_path);
 
+    unsigned int program_ID;
     // build and compile our shader program
     // ------------------------------------
     // vertex shader
@@ -134,44 +197,60 @@ unsigned int create_program(const char* vertex_path, const char* fragment_path)
         glGetShaderInfoLog(fragmentShader, 512, 0, infoLog);
     }
     // link shaders
-    shader_program = glCreateProgram();
-    glAttachShader(shader_program, vertexShader);
-    glAttachShader(shader_program, fragmentShader);
-    glLinkProgram(shader_program);
+    program_ID = glCreateProgram();
+    glAttachShader(program_ID, vertexShader);
+    glAttachShader(program_ID, fragmentShader);
+    glLinkProgram(program_ID);
     // check for linking errors
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+    glGetProgramiv(program_ID, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(shader_program, 512, 0, infoLog);
+        glGetProgramInfoLog(program_ID, 512, 0, infoLog);
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    return shader_program;
+    return program_ID;
 }
 
-void delete_shader_program() 
+void delete_main_program() 
 {
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteProgram(shader_program);
+    glDeleteVertexArrays(1, &block_VAO);
+    glDeleteProgram(main_program);
+    glDeleteVertexArrays(1, &skybox_VAO);
+    glDeleteProgram(skybox_program);
 }
 
 void use_program() 
 {
-	glUseProgram(shader_program);
+	glUseProgram(main_program);
+    current_program = main_program;
 }
 
-unsigned int get_program_ID()
+void use_cubemap_program()
 {
-    return shader_program;
+    glUseProgram(cubemap_program);
+    current_program = cubemap_program;
+}
+
+void use_skybox_program()
+{
+    glUseProgram(skybox_program);
+    current_program = skybox_program;
+}
+
+unsigned int get_program_ID(const char* program)
+{
+    if (program == "skybox") return skybox_program;
+    if (program == "main") return main_program;
+
+    return 0;
 }
 
 unsigned int get_vertex_array() 
 {
-    return VAO;
+    return block_VAO;
 }
 
 char* read_from_file(const char* fileName)
@@ -198,7 +277,7 @@ char* read_from_file(const char* fileName)
     return shaderContent;
 }
 
-unsigned int load_texture(const char* fileName, bool is_png) 
+unsigned int load_texture(const char* fileName, _Bool is_png) 
 {
     // load and create a texture 
     // -------------------------
@@ -230,31 +309,72 @@ unsigned int load_texture(const char* fileName, bool is_png)
     return texture;
 }
 
+unsigned int load_skybox()
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrComponents;
+
+    unsigned int available_texture_count = sizeof(skybox_faces) / sizeof(image_path);
+    for (unsigned int i = 0; i < available_texture_count; i++)
+    {
+        unsigned char* data = stbi_load(skybox_faces[i].path, &width, &height, &nrComponents, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            printf("Cubemap texture failed to load at path: %c\n", skybox_faces[i]);
+            stbi_image_free(data);
+        }
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    return textureID;
+}
+// ------------------------------------------------------------------------
+void setInt(const char* name, int value)
+{
+    glUniform1i(glGetUniformLocation(current_program, name), value);
+}
+
 void setMat4(const char* name, mat4 mat) 
 {
-    glUniformMatrix4fv(glGetUniformLocation(shader_program, name), 1, GL_FALSE, mat[0]);
+    glUniformMatrix4fv(glGetUniformLocation(current_program, name), 1, GL_FALSE, mat[0]);
+}
+void setVec3(const char* name, vec3 vec)
+{
+    glUniform3fv(glGetUniformLocation(current_program, name), 1, &vec[0]);
 }
 
 void active_texture_1()
 {
-    glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 1);
+    glUniform1i(glGetUniformLocation(main_program, "texture_index"), 1);
 }
 
 void active_texture_2()
 {
-    glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 2);
+    glUniform1i(glGetUniformLocation(main_program, "texture_index"), 2);
 }
 
 void active_texture_3()
 {
-    glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 3);
+    glUniform1i(glGetUniformLocation(main_program, "texture_index"), 3);
 }
 
 void active_texture_4()
 {
-    glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 4);
+    glUniform1i(glGetUniformLocation(main_program, "texture_index"), 4);
 }
 void active_texture_5() 
 {
-    glUniform1i(glGetUniformLocation(shader_program, "texture_index"), 5);
+    glUniform1i(glGetUniformLocation(main_program, "texture_index"), 5);
 }

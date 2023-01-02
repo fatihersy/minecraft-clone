@@ -13,18 +13,18 @@ typedef enum block_type
 
 typedef struct block
 {
-	bool is_active;
+	_Bool is_active;
 	uint8_t block_type;
 } block;
 
 typedef struct sides
 {
-	bool up;
-	bool down;
-	bool right;
-	bool left;
-	bool front;
-	bool back;
+	_Bool up;
+	_Bool down;
+	_Bool right;
+	_Bool left;
+	_Bool front;
+	_Bool back;
 }sides;
 
 void render_block(float x, float y, float z, sides side, uint8_t block_type);

@@ -11,8 +11,8 @@ mat4 model = GLM_MAT4_IDENTITY_INIT;
 mat4 view = GLM_MAT4_IDENTITY_INIT;
 mat4 projection = GLM_MAT4_IDENTITY_INIT;
 
-vec3 cameraPos   = { 0.0f, 15.0f, 0.0f };
-vec3 cameraFront = { 0.0f, 0.0f, 1.0f };
+vec3 cameraPos   = { 128.0f, 10.0f, 128.0f };
+vec3 cameraFront = { 1.0f, 0.0f, 1.0f };
 vec3 cameraUp    = { 0.0f, 1.0f, 0.0f };
 
 float player_width = 1.f;
@@ -51,20 +51,25 @@ void update_camera(float delta_time)
 {
 	camera_speed = 15.f * delta_time;
 
-	vec3 gravity = { 0.f, -0.3f, 0.f };
+	vec3 gravity = { 0.f, 0.0f, 0.f };
 
 	if (!check_is_collide(
-		(vector) {
-			cameraPos[0] + collision_box.x, 
-			cameraPos[1] - collision_box.y,
-			cameraPos[2] + collision_box.z
-		},
+		(vector) { cameraPos[0] + collision_box.x, cameraPos[1] - collision_box.y, cameraPos[2] + collision_box.z},
 		(vector) {gravity[0], gravity[1], gravity[2] },
 		collision_box
 	))
 	{
 		glm_vec_add(cameraPos, gravity, cameraPos);
 	}
+
+	use_program();
+
+	glm_mat4_identity(model);
+	glm_perspective(glm_rad(fov), (float)get_window_width() / (float)get_window_height(), 0.1f, 100.0f, projection);
+	setMat4("model", model);
+	setMat4("view", view);
+	setMat4("projection", projection);
+	setVec3("cameraPos", cameraPos);
 
 	// camera/view transformation
 	glm_mat4_identity(view); // make sure to initialize matrix to identity matrix first
@@ -76,6 +81,7 @@ void update_camera(float delta_time)
 	glm_vec_add(cameraPos, cameraFront, center);
 	glm_lookat(cameraPos, center, cameraUp, view);
 	setMat4("view", view);
+	setMat4("projection", projection);
 }
 
 void rotate_camera(float xoffset, float yoffset)
@@ -108,8 +114,6 @@ void move_camera_front()
 		0.f,
 		cameraFront[2]
 	};
-
-	printf("FRONT -> x: %f, y: %f, z: %f\n", cameraFront[0], cameraFront[1], cameraFront[2]);
 
 	if (!check_is_collide(camera_pos,direction, collision_box)) 
 	{
@@ -182,9 +186,23 @@ vector get_camera_direction()
 	return (vector) { cameraFront[0], cameraFront[1], cameraFront[2] };
 }
 
+float get_window_ratio() 
+{
+	return (float)get_window_width() / get_window_height();
+}
+
 void set_camera_position(float x, float y, float z)
 {
 	cameraPos[0] = x;
 	cameraPos[1] = y;
 	cameraPos[2] = z;
+}
+
+void set_view_matrix() 
+{
+	setMat4("view", view);
+}
+void set_projection_matrix() 
+{
+	setMat4("projection", projection);
 }
